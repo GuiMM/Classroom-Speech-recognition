@@ -5,9 +5,25 @@
  */
 package com.mycompany.speechrecognition;
 
+import AudioEdit.WavFile;
+import com.google.cloud.speech.spi.v1.SpeechClient;
+import com.google.cloud.speech.v1.RecognitionAudio;
 import com.google.cloud.speech.v1.RecognitionConfig;
+import com.google.cloud.speech.v1.RecognizeResponse;
+import com.google.cloud.speech.v1.SpeechRecognitionAlternative;
+import com.google.cloud.speech.v1.SpeechRecognitionResult;
+import com.google.protobuf.ByteString;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.TimeZone;
 
 /**
  *
@@ -15,10 +31,27 @@ import java.util.ArrayList;
  */
 public class ClassroomSubtitles {
     
-    public static void main(String[] args) {
-        ArrayList <String> name_Pieces = getNamePieces("./resources/aulas/redes/pieces/");
-        //System.out.println(name_Pieces.toString());
-        /*
+    public static void main(String[] args) throws Exception {
+        String path = "./resources/aulas/redes/";
+        String legend_Name = "Aula_001(1 canal)";
+        int count_Pieces = getNumberOfPieces(path+"pieces/");
+        getLegend(count_Pieces, path, legend_Name);
+        
+        
+    }
+    
+    private static void getLegend(int count_Pieces, String legend_Path, String legend_Name) throws IOException, Exception{
+        //criando um arquivo de legenda
+        FileWriter arquivo = new FileWriter(new File(legend_Path+legend_Name+".srt"));
+        BufferedWriter print = new BufferedWriter( arquivo );
+        
+        //cont time
+        int count =0;
+        
+        //montando o conteudo
+        // Instantiates a client
+        SpeechClient speech = SpeechClient.create();
+        
         // Builds the sync recognize request
         RecognitionConfig config = RecognitionConfig.newBuilder()
         .setEncoding(RecognitionConfig.AudioEncoding.LINEAR16)
@@ -26,7 +59,58 @@ public class ClassroomSubtitles {
         .setLanguageCode("pt-BR")   
         .build();
         
-        */
+        //formating time
+        double curr_time = 0.0;
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss,SSS");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        
+        //para cada pedaço de audio escreva no .srt
+        for (int i = 0; i < count_Pieces; i++) {
+            // The path to the audio file to transcribe
+            String fileName = legend_Path+"pieces/"+(i)+".wav";
+            System.out.println("peça nº "+i);
+            
+            //looking for info
+            File curr_Audio = new File(legend_Path+"pieces/"+(i)+".wav");
+            WavFile wavFile = WavFile.openWavFile(curr_Audio);
+            double tempoEmMiliSegundos = (double)wavFile.getNumFrames()*1000/44100;
+            
+            // Reads the audio file into memory                
+            Path piece_Path = Paths.get(fileName);
+            byte[] data = Files.readAllBytes(piece_Path);
+            ByteString audioBytes = ByteString.copyFrom(data);
+            
+            RecognitionAudio audio = RecognitionAudio.newBuilder()
+            .setContent(audioBytes)
+            .build();
+
+            // Performs speech recognition on the audio file
+            RecognizeResponse response = speech.recognize(config, audio);
+            List<SpeechRecognitionResult> results = response.getResultsList();
+         
+                
+            for (SpeechRecognitionResult result: results) {
+                List<SpeechRecognitionAlternative> alternatives = result.getAlternativesList();
+                print.newLine();
+                System.out.println("legenda numero"+i);
+                print.write(Integer.toString(i));
+                print.newLine();
+                print.write(sdf.format(curr_time)+"-->"+sdf.format(curr_time+tempoEmMiliSegundos));
+                print.newLine();
+                print.write(alternatives.get(0).getTranscript());
+                print.newLine();
+                //Criando o conteúdo do arquivo
+                print.flush();
+                
+            }
+            //updating the current time
+            curr_time += tempoEmMiliSegundos;
+        }
+        
+        
+        speech.close();
+        arquivo.close(); 
+    
     }
     
     private static ArrayList <String> getNamePieces(String way){
@@ -38,10 +122,27 @@ public class ClassroomSubtitles {
 
         for (File file : listOfFiles) {
             if (file.isFile()) {
-                System.out.println(file.getName());
+                name_Pieces.add(file.getName());
+                //System.out.println(file.getName());
+                
             }
         }
          
          return name_Pieces;
+    }
+    
+    private static int getNumberOfPieces(String pieces_Path){
+        int count=0;
+        
+        File folder = new File(pieces_Path);
+        File[] listOfFiles = folder.listFiles();
+
+        for (File file : listOfFiles) {
+            if (file.isFile()) {
+                count++;
+            }
+        }
+        
+        return count;
     }
 }

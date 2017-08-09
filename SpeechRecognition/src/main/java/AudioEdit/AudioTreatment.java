@@ -57,7 +57,7 @@ public class AudioTreatment {
 		// Calculate the number of frames required for specified duration
 		long numFrames = (long)(duration * sampleRate);
                 
-                piece = new File("./resources/aulas/redes/pieces/Aula_001 Slice "+(i)+".wav");
+                piece = new File("./resources/aulas/redes/pieces/"+(i)+".wav");
 		// Create a wav file 
 		WavFile wavFile = WavFile.newWavFile(piece, 1, numFrames, 16, sampleRate);
                 
