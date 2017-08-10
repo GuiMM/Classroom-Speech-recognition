@@ -64,11 +64,11 @@ public class ClassroomSubtitles {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss,SSS");
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         
-        //para cada pedaço de audio escreva no .srt
+        //para cada pedaÃ§o de audio escreva no .srt
         for (int i = 0; i < count_Pieces; i++) {
             // The path to the audio file to transcribe
             String fileName = legend_Path+"pieces/"+(i)+".wav";
-            System.out.println("peça nº "+i);
+            System.out.println("peÃ§a nÂº "+i);
             
             //looking for info
             File curr_Audio = new File(legend_Path+"pieces/"+(i)+".wav");
@@ -88,21 +88,23 @@ public class ClassroomSubtitles {
             RecognizeResponse response = speech.recognize(config, audio);
             List<SpeechRecognitionResult> results = response.getResultsList();
          
-                
+            
+            print.newLine();
+            System.out.println("legenda numero"+i);
+            print.write(Integer.toString(i));
+            print.newLine();
+            print.write(sdf.format(curr_time)+"-->"+sdf.format(curr_time+tempoEmMiliSegundos));
+            print.newLine();
+            
             for (SpeechRecognitionResult result: results) {
                 List<SpeechRecognitionAlternative> alternatives = result.getAlternativesList();
-                print.newLine();
-                System.out.println("legenda numero"+i);
-                print.write(Integer.toString(i));
-                print.newLine();
-                print.write(sdf.format(curr_time)+"-->"+sdf.format(curr_time+tempoEmMiliSegundos));
-                print.newLine();
+               
                 print.write(alternatives.get(0).getTranscript());
-                print.newLine();
-                //Criando o conteúdo do arquivo
-                print.flush();
-                
             }
+            print.newLine();
+            //Criando o conteÃºdo do arquivo
+            print.flush();
+            
             //updating the current time
             curr_time += tempoEmMiliSegundos;
         }

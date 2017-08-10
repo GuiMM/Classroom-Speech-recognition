@@ -17,26 +17,14 @@ public class AudioTreatment {
     
     public static void main(String[] args) throws Exception {
         File audio = new File("./resources/aulas/redes/Aula_001(1 canal).wav");
-        ArrayList<Integer> periods_Of_Silence = periodOfSilenceDetect(audio);
+        ArrayList<Long> periods_Of_Silence = periodOfSilenceDetect(audio);
         cutAudiosOnSilence(audio,periods_Of_Silence);
         
     }
 
-    private static void legendPiece(String way)throws Exception{
-    ClassRecognition Class_recon = new ClassRecognition(way);
-    
-    File folder = new File(way);
-    File[] listOfFiles = folder.listFiles();
-
-    for (File file : listOfFiles) {
-        if (file.isFile()) {
-            System.out.println(file.getName());
-        }
-    }
     
     
-    }
-    private static void cutAudiosOnSilence(File aula, ArrayList<Integer> periods_Of_Silence) {
+    private static void cutAudiosOnSilence(File aula, ArrayList<Long> periods_Of_Silence) {
         
 
         //making an list of audio pieces
@@ -48,15 +36,14 @@ public class AudioTreatment {
             for (int i = 0; i < periods_Of_Silence.size(); i++) {
                 
                 int sampleRate = 44100;		// Samples per second
-                int duration;
+                // Calculate the number of frames required for specified duration
+                long numFrames;
                 if (i==0) {
-                    duration = periods_Of_Silence.get(i);		// Seconds
+                    numFrames = periods_Of_Silence.get(i);		// Seconds
                 }else{
-                    duration = periods_Of_Silence.get(i) - periods_Of_Silence.get(i-1);		// Seconds
+                    numFrames = periods_Of_Silence.get(i) - periods_Of_Silence.get(i-1);		// Seconds
                 }
-		// Calculate the number of frames required for specified duration
-		long numFrames = (long)(duration * sampleRate);
-                
+		
                 piece = new File("./resources/aulas/redes/pieces/"+(i)+".wav");
 		// Create a wav file 
 		WavFile wavFile = WavFile.newWavFile(piece, 1, numFrames, 16, sampleRate);
@@ -118,9 +105,9 @@ public class AudioTreatment {
         }
     }
     
-    public static ArrayList<Integer> periodOfSilenceDetect(File aula){
-        ArrayList<Integer> periods_Of_Silence = new ArrayList<>();
-        ArrayList<Integer> periods_Of_Silence_Per_Minute = new ArrayList<>();
+    public static ArrayList<Long> periodOfSilenceDetect(File aula){
+        ArrayList<Long> periods_Of_Silence = new ArrayList<>();
+        ArrayList<Long> periods_Of_Silence_Per_Minute = new ArrayList<>();
         try
 		{
                     
@@ -145,7 +132,7 @@ public class AudioTreatment {
                         double threshold_Signal = 0.03;
                         
                         //have to be decremented every frame of silence
-                        int verifySilence = sampleRate/2;
+                        int verifySilence = sampleRate/4;
                         
 			do
 			{
@@ -153,7 +140,7 @@ public class AudioTreatment {
 				framesRead = wavFile.readFrames(buffer, sampleRate);
                                 
                                 //getting the current time
-                                int time = (int)(numFrames-wavFile.getFramesRemaining())/sampleRate;
+                                long time_Frame = (numFrames-wavFile.getFramesRemaining());
                                 //System.out.println("time: "+time+"  ////////////////////////////////////////");
 				
                                 // Loop through frames and look for minimum value
@@ -169,18 +156,20 @@ public class AudioTreatment {
                                     {    
                                        verifySilence--;
                                     }
-                                    else verifySilence = sampleRate/2;
+                                    else verifySilence = sampleRate/4;
                                     
                                     //storing a period of silence or the end of file
                                     if(verifySilence==0)
                                     {
-                                        verifySilence = sampleRate/2;
+                                        verifySilence = sampleRate/4;
                                         //addying the time immediatly before the period of silence
-                                        periods_Of_Silence.add(time);
+                                        periods_Of_Silence.add(time_Frame);
+                                        break;
+                                        
                                     }
 				}
                                 //addying also, the last audio period, even when the length is less than a minute
-                                if(framesRead == 0)periods_Of_Silence.add((int)numFrames/sampleRate);
+                                if(framesRead == 0)periods_Of_Silence.add(numFrames);
 			}
 			while (framesRead != 0);
 
@@ -188,20 +177,22 @@ public class AudioTreatment {
 			wavFile.close();
                        
                         
-                        int limit_Of_Silence = 0;
+                        long limit_Of_Silence = 0;
                         //While the minutes passes, we have to update
-                        int last_period_per_minute = 0;
+                        long last_period_per_minute = 0;
                         
                         //filtering the periods by minute
                         for (int i = 0; i < periods_Of_Silence.size()-1; i++) {
                             limit_Of_Silence = periods_Of_Silence.get(i+1) - last_period_per_minute;
                             
                            
-                            //limiting the period of silence by 1 minute and //addying also, the last audio period, even when the length is less than a minute
-                            if (limit_Of_Silence>=10|i==periods_Of_Silence.size()-2) {
+                            //limiting the period of silence by 10 seconds and //addying also, the last audio period, even when the length is less than a minute
+                            if (limit_Of_Silence>=441000|i==periods_Of_Silence.size()-2) {
                                 periods_Of_Silence_Per_Minute.add(periods_Of_Silence.get(i));
                                 last_period_per_minute = periods_Of_Silence.get(i);
-                                
+                                if (limit_Of_Silence>=60*44100) {
+                                    System.out.println("nao deu: "+i);
+                                }
                             }
                             
                             
