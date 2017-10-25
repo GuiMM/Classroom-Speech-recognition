@@ -29,7 +29,7 @@ import java.util.TimeZone;
 public class Main {
   public static void main(String... args) throws Exception {
     
-      FileWriter arquivo = new FileWriter(new File("./resources/aulas/redes/"+"Aula_001(1 canal)"+".srt"));
+      FileWriter arquivo = new FileWriter(new File("./resources/aulas/redes/"+"aula1"+".srt"));
         BufferedWriter print = new BufferedWriter( arquivo );
         
 //looking for info

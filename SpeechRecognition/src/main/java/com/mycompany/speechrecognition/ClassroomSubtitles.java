@@ -33,7 +33,7 @@ public class ClassroomSubtitles {
     
     public static void main(String[] args) throws Exception {
         String path = "./resources/aulas/redes/";
-        String legend_Name = "Aula_001(1 canal)";
+        String legend_Name = "aula1";
         int count_Pieces = getNumberOfPieces(path+"pieces/");
         getLegend(count_Pieces, path, legend_Name);
         
@@ -125,8 +125,7 @@ public class ClassroomSubtitles {
         for (File file : listOfFiles) {
             if (file.isFile()) {
                 name_Pieces.add(file.getName());
-                //System.out.println(file.getName());
-                
+               
             }
         }
          

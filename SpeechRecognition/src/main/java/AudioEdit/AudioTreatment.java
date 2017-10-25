@@ -16,10 +16,31 @@ import java.util.ArrayList;
 public class AudioTreatment {
     
     public static void main(String[] args) throws Exception {
-        File audio = new File("./resources/aulas/redes/Aula_001(1 canal).wav");
+        
+        for (arg : args) {
+            
+        }
+        File audio = new File("./resources/aulas/redes/aula1.wav");
         ArrayList<Long> periods_Of_Silence = periodOfSilenceDetect(audio);
         cutAudiosOnSilence(audio,periods_Of_Silence);
         
+    }
+    
+    private static ArrayList <String> getNamePieces(String way){
+        ArrayList <String> name_videos = new ArrayList();
+         
+        File folder = new File(way);
+        
+        File[] listOfFiles = folder.listFiles(new AudioFileFilter());
+
+        for (File file : listOfFiles) {
+            if (file.isFile()) {
+                name_videos.add(file.getName());
+               
+            }
+        }
+         
+         return name_videos;
     }
 
     
@@ -164,7 +185,6 @@ public class AudioTreatment {
                                         verifySilence = sampleRate/4;
                                         //addying the time immediatly before the period of silence
                                         periods_Of_Silence.add(time_Frame);
-                                        break;
                                         
                                     }
 				}
