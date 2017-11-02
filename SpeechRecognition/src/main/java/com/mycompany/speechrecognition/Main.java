@@ -6,7 +6,7 @@
 package com.mycompany.speechrecognition;
 
     // Imports the Google Cloud client library
-import AudioEdit.WavFile;
+/*import AudioEdit.WavFile;
 import com.google.cloud.speech.spi.v1.SpeechClient;
 import com.google.cloud.speech.v1.RecognitionAudio;
 import com.google.cloud.speech.v1.RecognitionConfig;
@@ -80,10 +80,10 @@ public class Main {
       }
     }
     speech.close();
-*/
+
       
       
   }
         
 }
-
+*/

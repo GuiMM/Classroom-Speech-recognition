@@ -6,6 +6,7 @@
 package AudioEdit;
 
 import com.mycompany.speechrecognition.ClassRecognition;
+import com.mycompany.speechrecognition.LessonsSubtitle;
 import java.io.File;
 import java.util.ArrayList;
 
@@ -17,14 +18,23 @@ public class AudioTreatment {
     
     public static void main(String[] args) throws Exception {
         
-        for (arg : args) {
-            
-        }
-        File audio = new File("./resources/aulas/redes/aula1.wav");
-        ArrayList<Long> periods_Of_Silence = periodOfSilenceDetect(audio);
-        cutAudiosOnSilence(audio,periods_Of_Silence);
+        //for (String arg : args) {
         
+            String path = "./resources/aulas/redes/";//arg;
+            ArrayList <String> name_videos = getNamePieces(path);
+            for (String name : name_videos) {
+                File audio = new File(path+name);
+                ArrayList<Long> periods_Of_Silence = periodOfSilenceDetect(audio);
+                cutAudiosOnSilence(audio,periods_Of_Silence,path);
+                
+                LessonsSubtitle sub = new LessonsSubtitle(path,name.substring(0, name.length()-4));  
+                
+            }
+            
+        //}
     }
+    
+    
     
     private static ArrayList <String> getNamePieces(String way){
         ArrayList <String> name_videos = new ArrayList();
@@ -32,11 +42,20 @@ public class AudioTreatment {
         File folder = new File(way);
         
         File[] listOfFiles = folder.listFiles(new AudioFileFilter());
-
+        File[] listOfFilesAlreadLegended = folder.listFiles(new LegendFileFilter());
+        
         for (File file : listOfFiles) {
             if (file.isFile()) {
                 name_videos.add(file.getName());
                
+            }
+        }
+        
+        for (File file : listOfFilesAlreadLegended) {
+            if (file.isFile()) {
+               String aux = file.getName().substring(0, file.getName().length()-4);
+               aux += ".wav";
+               name_videos.remove(aux);
             }
         }
          
@@ -45,7 +64,7 @@ public class AudioTreatment {
 
     
     
-    private static void cutAudiosOnSilence(File aula, ArrayList<Long> periods_Of_Silence) {
+    private static void cutAudiosOnSilence(File aula, ArrayList<Long> periods_Of_Silence, String path) {
         
 
         //making an list of audio pieces
@@ -65,7 +84,7 @@ public class AudioTreatment {
                     numFrames = periods_Of_Silence.get(i) - periods_Of_Silence.get(i-1);		// Seconds
                 }
 		
-                piece = new File("./resources/aulas/redes/pieces/"+(i)+".wav");
+                piece = new File(path+"pieces/"+(i)+".wav");
 		// Create a wav file 
 		WavFile wavFile = WavFile.newWavFile(piece, 1, numFrames, 16, sampleRate);
                 

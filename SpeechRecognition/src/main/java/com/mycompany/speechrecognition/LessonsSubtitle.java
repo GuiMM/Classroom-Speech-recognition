@@ -29,24 +29,18 @@ import java.util.TimeZone;
  *
  * @author MQGuilherme
  */
-public class ClassroomSubtitles {
-    
-    public static void main(String[] args) throws Exception {
-        String path = "./resources/aulas/redes/";
-        String legend_Name = "aula1";
+public class LessonsSubtitle {
+  
+    public LessonsSubtitle(String path, String fileName) throws Exception{
         int count_Pieces = getNumberOfPieces(path+"pieces/");
-        getLegend(count_Pieces, path, legend_Name);
-        
-        
+        getLegend(count_Pieces, path, fileName);
+    
     }
     
-    private static void getLegend(int count_Pieces, String legend_Path, String legend_Name) throws IOException, Exception{
+    private void getLegend(int count_Pieces, String legend_Path, String legend_Name) throws IOException, Exception{
         //criando um arquivo de legenda
         FileWriter arquivo = new FileWriter(new File(legend_Path+legend_Name+".srt"));
         BufferedWriter print = new BufferedWriter( arquivo );
-        
-        //cont time
-        int count =0;
         
         //montando o conteudo
         // Instantiates a client
@@ -112,9 +106,16 @@ public class ClassroomSubtitles {
         
         speech.close();
         arquivo.close(); 
-    
+        excludePieces(legend_Path+"pieces/");
     }
     
+    private void excludePieces(String way){
+        File pasta = new File(way);    
+        File[] arquivos = pasta.listFiles();    
+        for(File arquivo : arquivos) {
+                arquivo.delete();
+        }
+    }
     private static ArrayList <String> getNamePieces(String way){
         ArrayList <String> name_Pieces = new ArrayList();
          
