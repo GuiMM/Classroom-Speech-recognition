@@ -3,13 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.mycompany.speechrecognition;
+package AudioTreatmentAndLegend;
 
-import AudioEdit.WavFile;
 import com.google.cloud.speech.spi.v1.SpeechClient;
 import com.google.cloud.speech.v1.RecognitionAudio;
 import com.google.cloud.speech.v1.RecognitionConfig;
 import com.google.cloud.speech.v1.RecognizeResponse;
+import com.google.cloud.speech.v1.SpeechContext;
 import com.google.cloud.speech.v1.SpeechRecognitionAlternative;
 import com.google.cloud.speech.v1.SpeechRecognitionResult;
 import com.google.protobuf.ByteString;
@@ -27,17 +27,23 @@ import java.util.TimeZone;
 
 /**
  *
- * @author MQGuilherme
+ * @author guilh
  */
-public class LessonsSubtitle {
-  
-    public LessonsSubtitle(String path, String fileName) throws Exception{
+public class LessonsSubtitleComparable {
+ 
+    SpeechContext.Builder speechBuilder;
+    
+    public LessonsSubtitleComparable(String path, String fileName, List<String> mostUsedWords) throws Exception{
+         // adicionando speechContext para otimizar o reconhecimento de fala
+        speechBuilder = SpeechContext.newBuilder();
+        speechBuilder.addAllPhrases(mostUsedWords);
+        
         int count_Pieces = getNumberOfPieces(path+"pieces/");
         getLegend(count_Pieces, path, fileName);
     
     }
     
-    private void getLegend(int count_Pieces, String legend_Path, String legend_Name) throws IOException, Exception{
+    private void getLegend(int count_Pieces, String legend_Path, String legend_Name) throws  Exception{
         //criando um arquivo de legenda
         FileWriter arquivo = new FileWriter(new File(legend_Path+legend_Name+".srt"));
         BufferedWriter print = new BufferedWriter( arquivo );
@@ -46,11 +52,14 @@ public class LessonsSubtitle {
         // Instantiates a client
         SpeechClient speech = SpeechClient.create();
         
+        
+         
         // Builds the sync recognize request
         RecognitionConfig config = RecognitionConfig.newBuilder()
         .setEncoding(RecognitionConfig.AudioEncoding.LINEAR16)
         .setSampleRateHertz(44100)
-        .setLanguageCode("pt-BR")   
+        .setLanguageCode("pt-BR")
+        .addSpeechContexts(speechBuilder)
         .build();
         
         //formating time
@@ -58,11 +67,13 @@ public class LessonsSubtitle {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss,SSS");
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         
+        try{
         //para cada pedaÃ§o de audio escreva no .srt
         for (int i = 0; i < count_Pieces; i++) {
+            
             // The path to the audio file to transcribe
             String fileName = legend_Path+"pieces/"+(i)+".wav";
-            System.out.println("peÃ§a nÂº "+i);
+            System.out.println("peça num "+i);
             
             //looking for info
             File curr_Audio = new File(legend_Path+"pieces/"+(i)+".wav");
@@ -83,32 +94,40 @@ public class LessonsSubtitle {
             List<SpeechRecognitionResult> results = response.getResultsList();
          
             
-            print.newLine();
+            //print.newLine();
             System.out.println("legenda numero"+i);
-            print.write(Integer.toString(i));
-            print.newLine();
-            print.write(sdf.format(curr_time)+"-->"+sdf.format(curr_time+tempoEmMiliSegundos));
-            print.newLine();
+            //print.write(Integer.toString(i));
+            //print.newLine();
+            //print.write(sdf.format(curr_time)+"-->"+sdf.format(curr_time+tempoEmMiliSegundos));
+            //print.newLine();
             
             for (SpeechRecognitionResult result: results) {
                 List<SpeechRecognitionAlternative> alternatives = result.getAlternativesList();
-               
-                print.write(alternatives.get(0).getTranscript());
+                String legendChoosed = alternatives.get(0).getTranscript();
+                String [] arraylegendChoosed = legendChoosed.split("\\s");
+                for (int j = 0; j < arraylegendChoosed.length; j++) {
+                    print.write(arraylegendChoosed[j]);
+                    print.newLine();
+                }
+                //print.write(alternatives.get(0).getTranscript());
             }
-            print.newLine();
+            //print.newLine();
             //Criando o conteÃºdo do arquivo
             print.flush();
             
             //updating the current time
             curr_time += tempoEmMiliSegundos;
+           
         }
         
-        
-        speech.close();
-        arquivo.close(); 
-        excludePieces(legend_Path+"pieces/");
+        }catch(IOException e){
+            System.out.println(e);
+        }finally{
+            speech.close();
+            arquivo.close(); 
+            excludePieces(legend_Path+"pieces/");
+        }
     }
-    
     private void excludePieces(String way){
         File pasta = new File(way);    
         File[] arquivos = pasta.listFiles();    

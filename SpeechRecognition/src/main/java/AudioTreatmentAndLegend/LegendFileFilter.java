@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package AudioEdit;
+package AudioTreatmentAndLegend;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -12,11 +12,10 @@ import java.io.FileFilter;
  *
  * @author guilh
  */
-public class AudioFileFilter implements FileFilter {
-    
+public class LegendFileFilter implements FileFilter {
     
     
             public boolean accept(File pathname) {
-                return pathname.getName().toLowerCase().endsWith("wav");
+                return pathname.getName().toLowerCase().endsWith("srt");
             }
 }

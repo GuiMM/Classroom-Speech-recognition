@@ -1,4 +1,4 @@
-package AudioEdit;
+package AudioTreatmentAndLegend;
 
 // Wav file IO class
 // A.Greensted

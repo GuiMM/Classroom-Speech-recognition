@@ -3,31 +3,54 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package AudioEdit;
+package AudioTreatmentAndLegend;
 
-import com.mycompany.speechrecognition.ClassRecognition;
-import com.mycompany.speechrecognition.LessonsSubtitle;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
  * @author MQGuilherme
  */
-public class AudioTreatment {
+public class AudioTreatmentAndLegend {
     
     public static void main(String[] args) throws Exception {
         
         //for (String arg : args) {
         
-            String path = "./resources/aulas/redes/";//arg;
-            ArrayList <String> name_videos = getNamePieces(path);
-            for (String name : name_videos) {
+            String path = "./resource/Videos de introdução a informática/";//arg;
+            ArrayList <String> name_audios = getNamePieces(path);
+            for (String name : name_audios) {
                 File audio = new File(path+name);
+                String nameFolderPiece = createFolder(path+name);
                 ArrayList<Long> periods_Of_Silence = periodOfSilenceDetect(audio);
-                cutAudiosOnSilence(audio,periods_Of_Silence,path);
+                cutAudiosOnSilence(audio,periods_Of_Silence,nameFolderPiece);
                 
-                LessonsSubtitle sub = new LessonsSubtitle(path,name.substring(0, name.length()-4));  
+                // adicionando frases e palavras (speechContext) para otimizar o reconhecimento de fala
+                List<String> mostUsedWords = new ArrayList<>();
+                mostUsedWords.add("hardware");
+                mostUsedWords.add("software");
+                mostUsedWords.add("hexadecimais");
+                mostUsedWords.add("bases");
+                mostUsedWords.add("placa-mãe");
+                mostUsedWords.add("algoritmos");
+                mostUsedWords.add("sistema");
+                mostUsedWords.add("operacional");
+                mostUsedWords.add("processador");
+                mostUsedWords.add("programas");
+                mostUsedWords.add("operacional");
+                mostUsedWords.add("informação");
+                mostUsedWords.add("sistema operacional");
+                mostUsedWords.add("máquina");
+                mostUsedWords.add("computador");
+                mostUsedWords.add("hard");
+                mostUsedWords.add("disco");
+                mostUsedWords.add("memória");     
+                mostUsedWords.add("cpu");
+         
+         
+                LessonsSubtitle sub = new LessonsSubtitle(nameFolderPiece,name.substring(0, name.length()-4));  
                 
             }
             
@@ -37,7 +60,7 @@ public class AudioTreatment {
     
     
     private static ArrayList <String> getNamePieces(String way){
-        ArrayList <String> name_videos = new ArrayList();
+        ArrayList <String> name_audios = new ArrayList();
          
         File folder = new File(way);
         
@@ -46,7 +69,7 @@ public class AudioTreatment {
         
         for (File file : listOfFiles) {
             if (file.isFile()) {
-                name_videos.add(file.getName());
+                name_audios.add(file.getName());
                
             }
         }
@@ -55,11 +78,11 @@ public class AudioTreatment {
             if (file.isFile()) {
                String aux = file.getName().substring(0, file.getName().length()-4);
                aux += ".wav";
-               name_videos.remove(aux);
+               name_audios.remove(aux);
             }
         }
          
-         return name_videos;
+         return name_audios;
     }
 
     
@@ -84,7 +107,9 @@ public class AudioTreatment {
                     numFrames = periods_Of_Silence.get(i) - periods_Of_Silence.get(i-1);		// Seconds
                 }
 		
-                piece = new File(path+"pieces/"+(i)+".wav");
+                //piece = new File(path+"pieces/"+(i)+".wav");
+                piece = new File(path+(i)+".wav");
+
 		// Create a wav file 
 		WavFile wavFile = WavFile.newWavFile(piece, 1, numFrames, 16, sampleRate);
                 
@@ -113,12 +138,14 @@ public class AudioTreatment {
                 // Loop until all frames written
                 while (frameCounter < pieces.get(i).getNumFrames())
                 {
-                         // Read frames into buffer
-                        framesRead = original.readFrames(buffer_To_Read, sampleRate);
+                        
                     
                         // Determine how many frames to write, up to a maximum of the buffer size
                         long remaining = pieces.get(i).getFramesRemaining();
                         int toWrite = (remaining > sampleRate) ? sampleRate : (int) remaining;
+                        
+                         // Read frames into buffer
+                        framesRead = original.readFrames(buffer_To_Read, toWrite);
 
                         // Fill the buffer, one tone per channel
                         for (int s=0 ; s<toWrite ; s++, frameCounter++)
@@ -203,7 +230,7 @@ public class AudioTreatment {
                                     {
                                         verifySilence = sampleRate/4;
                                         //addying the time immediatly before the period of silence
-                                        periods_Of_Silence.add(time_Frame);
+                                        periods_Of_Silence.add(time_Frame-(sampleRate-s));
                                         
                                     }
 				}
@@ -246,5 +273,30 @@ public class AudioTreatment {
         
         
        return periods_Of_Silence_Per_Minute;
+    }
+
+    private static String createFolder(String folder) {
+        String folderName = folder.substring(0, folder.length()-4);
+        
+        try {
+            File folderFile = new File(folderName);
+            
+            if (!folderFile.exists()) {
+                folderFile.mkdir();
+                
+            }else{
+                File[] arquivos = folderFile.listFiles(); 
+                for(File arquivo : arquivos) {
+                    arquivo.delete();
+                }
+            }
+            
+            folderName = folderFile.getAbsolutePath();
+        } catch (Exception ex) {
+            System.out.println("Erro ao criar o diretorio");
+            System.out.println(ex);
+        }
+        folderName = folderName+"\\";
+        return folderName;
     }
 }

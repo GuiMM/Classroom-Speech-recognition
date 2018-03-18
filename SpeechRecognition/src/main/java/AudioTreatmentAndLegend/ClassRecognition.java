@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.mycompany.speechrecognition;
+package AudioTreatmentAndLegend;
 
 import com.google.cloud.speech.spi.v1.SpeechClient;
 import com.google.cloud.speech.v1.RecognitionAudio;
